@@ -1,7 +1,7 @@
 {
-	"name": "jsnb",
-	"displayName": "JavaScript Notebooks",
-	"description": "JavaScript Notebooks for VS Code",
+	"name": "javascript-notebooks",
+	"displayName": "JavaScript & TypeScript Notebooks",
+	"description": "JavaScript & TypeScript Notebooks for VS Code",
 	"version": "0.0.1",
 	"author": {
 		"name": "João Moreno",
@@ -14,13 +14,13 @@
 		"Notebooks"
 	],
 	"activationEvents": [
-		"onCommand:jsnb.helloWorld"
+		"onCommand:javascript-notebooks.helloWorld"
 	],
 	"browser": "./dist/web/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "jsnb.helloWorld",
+				"command": "javascript-notebooks.helloWorld",
 				"title": "Hello World"
 			}
 		]
