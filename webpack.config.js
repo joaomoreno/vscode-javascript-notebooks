@@ -17,12 +17,12 @@ const webExtensionConfig = {
 	mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
 	target: 'webworker', // extensions run in a webworker context
 	entry: {
-		'extension': './src/web/extension.ts',
-		'test/suite/index': './src/web/test/suite/index.ts'
+		'extension': './src/extension.ts',
+		'test/suite/index': './src/test/suite/index.ts'
 	},
 	output: {
 		filename: '[name].js',
-		path: path.join(__dirname, './dist/web'),
+		path: path.join(__dirname, './dist'),
 		libraryTarget: 'commonjs',
 		devtoolModuleFilenameTemplate: '../../[resource-path]'
 	},
