@@ -19,9 +19,6 @@
 		},
 		"virtualWorkspaces": true
 	},
-	"enabledApiProposals": [
-		"notebookEditor"
-	],
 	"activationEvents": [
 		"onNotebook:javascript-notebook"
 	],
