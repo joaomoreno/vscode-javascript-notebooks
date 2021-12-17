@@ -81,7 +81,7 @@
 				"@semantic-release/exec",
 				{
 					"verifyConditionsCmd": "node -e \"!process.env.VSCE_PAT && (console.error('Error: VSCE_PAT env missing!'), process.exit(1))\"",
-					"publishCmd": "npx vsce publish ${nextRelease.version}"
+					"publishCmd": "npx vsce publish --no-git-tag-version --no-update-package-json ${nextRelease.version}"
 				}
 			],
 			"@semantic-release/github"
