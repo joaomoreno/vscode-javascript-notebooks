@@ -1,4 +1,4 @@
-import { NotebookCell, NotebookCellOutput, NotebookCellOutputItem, notebooks, Uri } from 'vscode';
+import { NotebookCell, NotebookCellOutput, NotebookCellOutputItem, NotebookDocument, notebooks, Uri } from 'vscode';
 import { Client, createProxy } from './ipc';
 import { WorkerProtocol } from './protocol';
 
@@ -10,34 +10,39 @@ export class Controller {
 	);
 
 	private order = 0;
-	private readonly worker: WorkerProtocol;
+	private readonly workers = new WeakMap<NotebookDocument, WorkerProtocol>();
 
-	constructor(rootUri: Uri) {
+	constructor(private readonly rootUri: Uri) {
 		this.controller.supportedLanguages = ['javascript'];
 		this.controller.supportsExecutionOrder = true;
 		this.controller.executeHandler = this.executeCells.bind(this);
-
-		const workerPath = Uri.joinPath(rootUri, 'dist/worker.js').toString();
-		const worker = new Worker(workerPath);
-		const { port1, port2 } = new MessageChannel();
-		worker.postMessage(port2, [port2]);
-
-		this.worker = createProxy(new Client(port1));
 	}
 
-	private async executeCells(cells: NotebookCell[]): Promise<void> {
+	private async executeCells(cells: NotebookCell[], document: NotebookDocument): Promise<void> {
+		let worker = this.workers.get(document);
+
+		if (!worker) {
+			const workerPath = Uri.joinPath(this.rootUri, 'dist/worker.js').toString();
+			const webWorker = new Worker(workerPath);
+			const { port1, port2 } = new MessageChannel();
+			webWorker.postMessage(port2, [port2]);
+
+			worker = createProxy<WorkerProtocol>(new Client(port1));
+			this.workers.set(document, worker);
+		}
+
 		for (const cell of cells) {
-			await this.executeCell(cell);
+			await this.executeCell(worker, cell);
 		}
 	}
 
-	private async executeCell(cell: NotebookCell): Promise<void> {
+	private async executeCell(worker: WorkerProtocol, cell: NotebookCell): Promise<void> {
 		const execution = this.controller.createNotebookCellExecution(cell);
 		execution.executionOrder = ++this.order;
 		execution.start(Date.now());
 
 		try {
-			const result = await this.worker.execute(cell.document.getText());
+			const result = await worker.execute(cell.document.getText());
 
 			if (result === undefined) {
 				execution.replaceOutput([]);
