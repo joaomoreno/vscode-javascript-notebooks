@@ -2,13 +2,13 @@ import { Server } from "./ipc";
 import { WorkerProtocol } from "./protocol";
 
 class Worker implements WorkerProtocol {
-  constructor() {
-    new Server(self, this as any);
-  }
-
   async execute(source: string): Promise<string> {
     return (0, eval)(source);
   }
 }
 
-new Worker();
+self.onmessage = (event) => {
+  const port = event.data as MessagePort;
+  self.onmessage = null;
+  new Server(port, new Worker());
+};

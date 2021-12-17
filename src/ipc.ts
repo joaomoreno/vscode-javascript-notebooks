@@ -1,12 +1,3 @@
-interface MessagePassingProtocol<T> {
-  onmessage: ((this: any, ev: MessageEvent<T>) => any) | null;
-  postMessage(message: T): void;
-}
-
-type Proxyable<T> = {
-  readonly [_ in keyof T]: () => Promise<any>;
-};
-
 const enum MessageType {
   Call,
   Resolve,
@@ -37,17 +28,29 @@ interface RejectMessage extends BaseMessage {
 
 type Message = CallMessage | ResolveMessage | RejectMessage;
 
+function isIPCMessage(message: any): message is Message {
+  return Number.isInteger(message.type) && Number.isInteger(message.id);
+}
+
 interface Request {
   resolve(result: any): void;
   reject(error: any): void;
 }
 
+type Proxyable<T> = {
+  readonly [_ in keyof T]: (..._: any[]) => Promise<unknown>;
+};
+
 export class Client {
   private REQUEST_ID = 0;
   private pending = new Map<number, Request>();
+  readonly dispose: () => void;
 
-  constructor(private readonly protocol: MessagePassingProtocol<Message>) {
-    protocol.onmessage = (e) => this.onMessage(e.data);
+  constructor(private readonly port: MessagePort) {
+    const callback = this.onMessage.bind(this);
+    port.addEventListener("message", callback);
+    this.dispose = () => port.removeEventListener("message", callback);
+    port.start();
   }
 
   invoke(method: string, args: unknown[]): Promise<unknown> {
@@ -56,29 +59,33 @@ export class Client {
       this.pending.set(id, { resolve: c, reject: e });
     });
 
-    this.protocol.postMessage({ type: MessageType.Call, id, method, args });
+    this.port.postMessage({ type: MessageType.Call, id, method, args });
     return promise;
   }
 
-  private onMessage(message: Message): void {
-    switch (message.type) {
+  private onMessage(event: MessageEvent): void {
+    if (!isIPCMessage(event.data)) {
+      return;
+    }
+
+    switch (event.data.type) {
       case MessageType.Resolve: {
-        const request = this.pending.get(message.id);
+        const request = this.pending.get(event.data.id);
 
         if (request) {
-          this.pending.delete(message.id);
-          request.resolve(message.result);
+          this.pending.delete(event.data.id);
+          request.resolve(event.data.result);
         }
 
         return;
       }
       case MessageType.Reject: {
-        const request = this.pending.get(message.id);
+        const request = this.pending.get(event.data.id);
 
         if (request) {
-          this.pending.delete(message.id);
-          const error = new Error(message.message);
-          error.stack = message.stack;
+          this.pending.delete(event.data.id);
+          const error = new Error(event.data.message);
+          error.stack = event.data.stack;
           request.reject(error);
         }
 
@@ -89,33 +96,42 @@ export class Client {
 }
 
 export class Server<T extends Proxyable<T>> {
+  readonly dispose: () => void;
+
   constructor(
-    private readonly protocol: MessagePassingProtocol<Message>,
+    private readonly port: MessagePort,
     private readonly instance: T
   ) {
-    protocol.onmessage = (e) => this.onMessage(e.data);
+    const callback = this.onMessage.bind(this);
+    port.addEventListener("message", callback);
+    this.dispose = () => port.removeEventListener("message", callback);
+    port.start();
   }
 
-  private async onMessage(message: Message): Promise<void> {
-    if (message.type !== MessageType.Call) {
+  private async onMessage(event: MessageEvent): Promise<void> {
+    if (!isIPCMessage(event.data)) {
       return;
     }
 
-    const id = message.id;
+    if (event.data.type !== MessageType.Call) {
+      return;
+    }
+
+    const id = event.data.id;
 
     try {
-      const result = await (this.instance as any)[message.method].apply(
+      const result = await (this.instance as any)[event.data.method].apply(
         this.instance,
-        message.args
+        event.data.args
       );
 
-      this.protocol.postMessage({
+      this.port.postMessage({
         type: MessageType.Resolve,
         id,
         result,
       });
     } catch (err: any) {
-      this.protocol.postMessage({
+      this.port.postMessage({
         type: MessageType.Reject,
         id,
         message: err.message,

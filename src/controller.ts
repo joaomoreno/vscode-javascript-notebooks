@@ -3,6 +3,7 @@ import {
   NotebookCellOutput,
   NotebookCellOutputItem,
   notebooks,
+  Uri,
 } from "vscode";
 import { Client, createProxy } from "./ipc";
 import { WorkerProtocol } from "./protocol";
@@ -17,13 +18,17 @@ export class Controller {
   private order = 0;
   private readonly worker: WorkerProtocol;
 
-  constructor(worker: Worker) {
+  constructor(rootUri: Uri) {
     this.controller.supportedLanguages = ["javascript"];
     this.controller.supportsExecutionOrder = true;
     this.controller.executeHandler = this.executeCells.bind(this);
 
-    const client = new Client(worker);
-    this.worker = createProxy(client);
+    const workerPath = Uri.joinPath(rootUri, "dist/worker.js").toString();
+    const worker = new Worker(workerPath);
+    const { port1, port2 } = new MessageChannel();
+    worker.postMessage(port2, [port2]);
+
+    this.worker = createProxy(new Client(port1));
   }
 
   private async executeCells(cells: NotebookCell[]): Promise<void> {
