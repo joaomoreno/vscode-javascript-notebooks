@@ -6,6 +6,7 @@ node_modules/**
 .gitignore
 .prettierignore
 .husky
+.github
 samples/**
 vsc-extension-quickstart.md
 webpack.config.js
