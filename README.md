@@ -5,7 +5,8 @@ Create and run JavaScript and TypeScript notebooks in VS Code, using the power o
 ## Features
 
 - [x] [Web support](https://vscode.dev)
-- [x] JavaScript
-- [ ] TypeScript
+- [x] JavaScript support
+- [ ] TypeScript support
+- [ ] `console.log()` support
 - [ ] Infinite loop detection
-- [ ] Top-level await
+- [ ] Top-level await support
