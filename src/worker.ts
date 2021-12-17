@@ -7,7 +7,7 @@ class Worker implements WorkerProtocol {
   }
 
   async execute(source: string): Promise<string> {
-    return eval(source);
+    return (0, eval)(source);
   }
 }
 
