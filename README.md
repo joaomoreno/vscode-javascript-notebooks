@@ -1,3 +1,9 @@
-# README
+# JavaScript & TypeScript Notebooks for VS Code
 
-TODO
+## Features
+
+- [x] Web support
+- [x] JavaScript
+- [ ] TypeScript
+- [ ] Infinite loop detection
+- [ ] Top-level await
