@@ -40,29 +40,17 @@
 		]
 	},
 	"scripts": {
-		"test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/test/suite/index.js",
-		"pretest": "npm run compile-web",
-		"vscode:prepublish": "npm run package-web",
-		"compile-web": "webpack",
-		"watch-web": "webpack --watch",
-		"package-web": "webpack --mode production",
-		"lint": "eslint src --ext ts",
-		"run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ."
+		"vscode:prepublish": "npm run dist",
+		"compile": "webpack",
+		"watch": "webpack --watch",
+		"dist": "webpack --mode production"
 	},
 	"devDependencies": {
 		"@types/vscode": "^1.63.0",
-		"@types/mocha": "^9.0.0",
-		"eslint": "^7.32.0",
-		"@typescript-eslint/eslint-plugin": "^4.31.1",
-		"@typescript-eslint/parser": "^4.31.1",
-		"mocha": "^9.1.1",
-		"typescript": "^4.4.3",
-		"@vscode/test-web": "^0.0.13",
-		"ts-loader": "^9.2.5",
-		"webpack": "^5.52.1",
-		"webpack-cli": "^4.8.0",
 		"@types/webpack-env": "^1.16.2",
-		"assert": "^2.0.0",
-		"process": "^0.11.10"
+		"ts-loader": "^9.2.5",
+		"typescript": "^4.4.3",
+		"webpack": "^5.52.1",
+		"webpack-cli": "^4.8.0"
 	}
 }
