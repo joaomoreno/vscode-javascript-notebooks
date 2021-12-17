@@ -3,6 +3,7 @@
 	"displayName": "JavaScript & TypeScript Notebooks",
 	"description": "JavaScript & TypeScript Notebooks for VS Code",
 	"version": "0.0.1",
+	"publisher": "joaomoreno",
 	"author": {
 		"name": "João Moreno",
 		"email": "joaomoreno@users.noreply.github.com"
