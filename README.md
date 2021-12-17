@@ -2,7 +2,7 @@
 
 ## Features
 
-- [x] Web support
+- [x] [Web support](https://vscode.dev)
 - [x] JavaScript
 - [ ] TypeScript
 - [ ] Infinite loop detection
