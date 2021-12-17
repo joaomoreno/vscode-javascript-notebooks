@@ -7,6 +7,10 @@
 		"name": "João Moreno",
 		"email": "joaomoreno@users.noreply.github.com"
 	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/joaomoreno/vscode-javascript-notebooks.git"
+	},
 	"engines": {
 		"vscode": "^1.63.0"
 	},
