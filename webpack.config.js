@@ -11,42 +11,62 @@
 
 const path = require('path');
 
+/** @type WebpackConfig */
+const base = {
+	mode: 'none',
+	target: 'webworker',
+	output: {
+		filename: '[name].js',
+		path: path.join(__dirname, './dist'),
+		libraryTarget: 'commonjs',
+	},
+	resolve: {
+		mainFields: ['browser', 'module', 'main'], // look for `browser` entry point in imported node modules
+		extensions: ['.ts', '.js'], // support ts-files and js-files
+	},
+	module: {
+		rules: [
+			{
+				test: /\.ts$/,
+				exclude: /node_modules/,
+				use: [
+					{
+						loader: 'ts-loader',
+					},
+				],
+			},
+		],
+	},
+	externals: {
+		vscode: 'commonjs vscode', // ignored because it doesn't exist
+	},
+	performance: {
+		hints: false,
+	},
+};
+
 /** @type WebpackConfig[] */
 module.exports = [
 	{
-		mode: 'none',
-		target: 'webworker',
+		...base,
 		entry: {
 			extension: './src/extension.ts',
-			worker: './src/worker.ts',
 		},
 		output: {
 			filename: '[name].js',
 			path: path.join(__dirname, './dist'),
 			libraryTarget: 'commonjs',
 		},
-		resolve: {
-			mainFields: ['browser', 'module', 'main'], // look for `browser` entry point in imported node modules
-			extensions: ['.ts', '.js'], // support ts-files and js-files
+	},
+	{
+		...base,
+		entry: {
+			worker: './src/worker.ts',
 		},
-		module: {
-			rules: [
-				{
-					test: /\.ts$/,
-					exclude: /node_modules/,
-					use: [
-						{
-							loader: 'ts-loader',
-						},
-					],
-				},
-			],
-		},
-		externals: {
-			vscode: 'commonjs vscode', // ignored because it doesn't exist
-		},
-		performance: {
-			hints: false,
+		output: {
+			filename: '[name].js',
+			path: path.join(__dirname, './dist'),
+			libraryTarget: 'self',
 		},
 	},
 ];
