@@ -4,6 +4,8 @@ import {
   NotebookCellOutputItem,
   notebooks,
 } from "vscode";
+import { Client, createProxy } from "./ipc";
+import { WorkerProtocol } from "./protocol";
 
 export class Controller {
   private readonly controller = notebooks.createNotebookController(
@@ -13,30 +15,39 @@ export class Controller {
   );
 
   private order = 0;
+  private readonly worker: WorkerProtocol;
 
-  constructor() {
+  constructor(worker: Worker) {
     this.controller.supportedLanguages = ["javascript"];
     this.controller.supportsExecutionOrder = true;
     this.controller.executeHandler = this.executeCells.bind(this);
+
+    const client = new Client(worker);
+    this.worker = createProxy(client);
   }
 
-  private executeCells(cells: NotebookCell[]): void {
+  private async executeCells(cells: NotebookCell[]): Promise<void> {
     for (const cell of cells) {
-      this.executeCell(cell);
+      await this.executeCell(cell);
     }
   }
 
-  private executeCell(cell: NotebookCell): void {
+  private async executeCell(cell: NotebookCell): Promise<void> {
     const execution = this.controller.createNotebookCellExecution(cell);
     execution.executionOrder = ++this.order;
     execution.start(Date.now());
 
     try {
-      const result = eval(cell.document.getText());
+      const result = await this.worker.execute(cell.document.getText());
 
-      execution.replaceOutput([
-        new NotebookCellOutput([NotebookCellOutputItem.text(result)]),
-      ]);
+      if (result === undefined) {
+        execution.replaceOutput([]);
+      } else {
+        execution.replaceOutput([
+          new NotebookCellOutput([NotebookCellOutputItem.text(result)]),
+        ]);
+      }
+
       execution.end(true, Date.now());
     } catch (err: any) {
       execution.replaceOutput([

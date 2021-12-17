@@ -1,8 +1,6 @@
-import { Disposable, Event } from "vscode";
-
 interface MessagePassingProtocol<T> {
-  readonly onMessage: Event<T>;
-  send(message: T): void;
+  onmessage: ((this: any, ev: MessageEvent<T>) => any) | null;
+  postMessage(message: T): void;
 }
 
 type Proxyable<T> = {
@@ -33,7 +31,8 @@ interface ResolveMessage extends BaseMessage {
 
 interface RejectMessage extends BaseMessage {
   readonly type: MessageType.Reject;
-  readonly error: unknown;
+  readonly message: string;
+  readonly stack: string | undefined;
 }
 
 type Message = CallMessage | ResolveMessage | RejectMessage;
@@ -44,12 +43,11 @@ interface Request {
 }
 
 export class Client {
-  private readonly listener: Disposable;
   private REQUEST_ID = 0;
   private pending = new Map<number, Request>();
 
   constructor(private readonly protocol: MessagePassingProtocol<Message>) {
-    this.listener = protocol.onMessage(this.onMessage, this);
+    protocol.onmessage = (e) => this.onMessage(e.data);
   }
 
   invoke(method: string, args: unknown[]): Promise<unknown> {
@@ -58,7 +56,7 @@ export class Client {
       this.pending.set(id, { resolve: c, reject: e });
     });
 
-    this.protocol.send({ type: MessageType.Call, id, method, args });
+    this.protocol.postMessage({ type: MessageType.Call, id, method, args });
     return promise;
   }
 
@@ -79,27 +77,23 @@ export class Client {
 
         if (request) {
           this.pending.delete(message.id);
-          request.reject(message.error);
+          const error = new Error(message.message);
+          error.stack = message.stack;
+          request.reject(error);
         }
 
         return;
       }
     }
   }
-
-  dispose() {
-    this.listener.dispose();
-  }
 }
 
 export class Server<T extends Proxyable<T>> {
-  private readonly listener: Disposable;
-
   constructor(
     private readonly protocol: MessagePassingProtocol<Message>,
     private readonly instance: T
   ) {
-    this.listener = protocol.onMessage(this.onMessage, this);
+    protocol.onmessage = (e) => this.onMessage(e.data);
   }
 
   private async onMessage(message: Message): Promise<void> {
@@ -115,22 +109,19 @@ export class Server<T extends Proxyable<T>> {
         message.args
       );
 
-      this.protocol.send({
+      this.protocol.postMessage({
         type: MessageType.Resolve,
         id,
         result,
       });
     } catch (err: any) {
-      this.protocol.send({
+      this.protocol.postMessage({
         type: MessageType.Reject,
         id,
-        error: String(err),
+        message: err.message,
+        stack: err.stack,
       });
     }
-  }
-
-  dispose() {
-    this.listener.dispose();
   }
 }
 
