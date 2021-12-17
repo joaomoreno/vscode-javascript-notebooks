@@ -45,14 +45,37 @@
 		"vscode:prepublish": "npm run dist",
 		"compile": "webpack",
 		"watch": "webpack --watch",
-		"dist": "webpack --mode production"
+		"dist": "webpack --mode production",
+		"prepare": "husky install"
 	},
 	"devDependencies": {
+		"@commitlint/cli": "^15.0.0",
+		"@commitlint/config-conventional": "^15.0.0",
 		"@types/vscode": "^1.63.0",
 		"@types/webpack-env": "^1.16.2",
+		"husky": "^7.0.4",
+		"prettier": "^2.5.1",
+		"pretty-quick": "^3.1.2",
+		"semantic-release": "^18.0.1",
 		"ts-loader": "^9.2.5",
 		"typescript": "^4.4.3",
 		"webpack": "^5.52.1",
 		"webpack-cli": "^4.8.0"
+	},
+	"prettier": {
+		"useTabs": true,
+		"printWidth": 120,
+		"singleQuote": true,
+		"arrowParens": "avoid"
+	},
+	"release": {
+		"branches": [
+			"main"
+		]
+	},
+	"commitlint": {
+		"extends": [
+			"@commitlint/config-conventional"
+		]
 	}
 }
