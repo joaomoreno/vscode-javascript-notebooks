@@ -60,7 +60,7 @@
 		"semantic-release": "^18.0.1",
 		"ts-loader": "^9.2.5",
 		"typescript": "^4.4.3",
-		"vsce": "^2.5.2",
+		"vsce": "^2.5.3",
 		"webpack": "^5.52.1",
 		"webpack-cli": "^4.8.0"
 	},
@@ -81,7 +81,7 @@
 				"@semantic-release/exec",
 				{
 					"verifyConditionsCmd": "node -e \"!process.env.VSCE_PAT && (console.error('Error: VSCE_PAT env missing!'), process.exit(1))\"",
-					"publishCmd": "npx vsce publish --no-git-tag-version --no-update-package-json ${nextRelease.version}"
+					"publishCmd": "npx --no -- vsce publish --no-git-tag-version --no-update-package-json ${nextRelease.version}"
 				}
 			],
 			"@semantic-release/github"
