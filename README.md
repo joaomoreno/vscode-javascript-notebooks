@@ -1,6 +1,8 @@
 # JavaScript & TypeScript Notebooks for VS Code
 
-Create and run JavaScript and TypeScript notebooks in VS Code, using the power of Web Workers.
+JavaScript and TypeScript notebooks in VS Code, using the power of Web Workers.
+
+![image](https://user-images.githubusercontent.com/22350/146595770-f1eb7454-6625-4a39-b8f5-7f6154756618.png)
 
 ## Features
 
